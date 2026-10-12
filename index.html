@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AP FlashPass - 応用情報午前 単語一問一答フラッシュ</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <!-- アプリヘッダー -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo-icon">⚡</div>
+        <div class="brand-text">
+          <h1>AP FlashPass</h1>
+          <span class="sub-title">応用情報技術者 午前頻出 一問一答</span>
+        </div>
+      </div>
+
+      <!-- モード切り替えタブ -->
+      <nav class="mode-tabs">
+        <button id="tab-flashcard" class="tab-btn active" data-mode="flashcard">
+          <span class="tab-icon">🎴</span>
+          <span class="tab-label">フラッシュカード</span>
+        </button>
+        <button id="tab-quiz" class="tab-btn" data-mode="quiz">
+          <span class="tab-icon">🎯</span>
+          <span class="tab-label">4択スピードクイズ</span>
+        </button>
+        <button id="tab-list" class="tab-btn" data-mode="list">
+          <span class="tab-icon">📚</span>
+          <span class="tab-label">単語帳一覧</span>
+        </button>
+      </nav>
+
+      <!-- ヘッダー右側アクション -->
+      <div class="header-actions">
+        <button id="btn-stats-modal" class="icon-btn" title="学習進捗・統計">📊</button>
+        <button id="btn-settings-modal" class="icon-btn" title="設定">⚙️</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- コントロールバー（フィルター・進捗） -->
+  <div class="control-bar">
+    <div class="control-inner">
+      <!-- カテゴリセレクタ -->
+      <div class="filter-group">
+        <select id="category-filter" class="custom-select" title="分野フィルター">
+          <option value="all">全分野 (すべて)</option>
+          <option value="テクノロジ系">💻 テクノロジ系</option>
+          <option value="マネジメント系">📋 マネジメント系</option>
+          <option value="ストラテジ系">📈 ストラテジ系</option>
+        </select>
+
+        <select id="subcategory-filter" class="custom-select" title="詳細分野フィルター">
+          <option value="all">詳細分野: すべて</option>
+        </select>
+
+        <select id="status-filter" class="custom-select" title="状態フィルター">
+          <option value="all">状態: すべて</option>
+          <option value="review">⚠️ 要復習（苦手）のみ</option>
+          <option value="mastered">✅ 習得済みのみ</option>
+          <option value="unlearned">⚪ 未着手のみ</option>
+          <option value="bookmarked">⭐ ブックマークのみ</option>
+        </select>
+      </div>
+
+      <!-- 進捗メーター & ショートカットボタン -->
+      <div class="progress-and-tools">
+        <div class="progress-info">
+          <span class="progress-counter" id="progress-counter">0 / 0</span>
+          <div class="progress-bar-wrap">
+            <div id="progress-bar" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="tool-buttons">
+          <button id="btn-flip-direction" class="pill-btn" title="出題方向切り替え [R]">
+            <span id="flip-direction-label">説明 ➜ 用語</span>
+          </button>
+          <button id="btn-shuffle" class="pill-btn" title="シャッフル [S]">
+            🔀 シャッフル
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ領域 -->
+  <main class="main-container">
+
+    <!-- ==============================================
+         1. フラッシュカード画面
+         ============================================== -->
+    <section id="view-flashcard" class="view-section active">
+      <div class="flashcard-wrapper">
+        
+        <!-- カード本体（3Dフリップ） -->
+        <div class="card-scene" id="card-scene">
+          <div class="flashcard" id="flashcard">
+            
+            <!-- 表面 (Front) -->
+            <div class="card-face card-front">
+              <div class="card-meta">
+                <span class="badge category-badge" id="front-category">テクノロジ系 / セキュリティ</span>
+                <span class="badge difficulty-badge" id="front-difficulty">必須</span>
+                <button class="bookmark-btn" id="front-bookmark" title="ブックマーク [B]">⭐</button>
+              </div>
+
+              <div class="card-body">
+                <span class="prompt-hint" id="front-prompt-hint">Q. 次の定義・説明に当てはまる用語は？</span>
+                <div class="card-main-text" id="front-main-text">
+                  読み込み中...
+                </div>
+              </div>
+
+              <div class="card-footer-hint">
+                <span class="desktop-hint">クリック または <kbd>Space</kbd> で裏返す</span>
+                <span class="mobile-hint">タップで裏返す 👆</span>
+              </div>
+            </div>
+
+            <!-- 裏面 (Back) -->
+            <div class="card-face card-back">
+              <div class="card-meta">
+                <span class="badge category-badge" id="back-category">テクノロジ系 / セキュリティ</span>
+                <span class="badge status-badge" id="back-status">要復習</span>
+                <button class="bookmark-btn" id="back-bookmark" title="ブックマーク [B]">⭐</button>
+              </div>
+
+              <div class="card-body">
+                <!-- 正解単語 & 英語フルスペル -->
+                <div class="answer-section">
+                  <div class="answer-term" id="back-term">WAF</div>
+                  <div class="answer-spelling" id="back-spelling">Web Application Firewall</div>
+                </div>
+
+                <!-- 基本定義・説明 -->
+                <div class="back-definition-box" id="back-definition-box">
+                  <div class="back-definition-text" id="back-definition"></div>
+                </div>
+
+                <!-- 午前試験の決め手解説 -->
+                <div class="exam-point-box">
+                  <div class="exam-point-header">
+                    <span class="point-icon">💡</span>
+                    <span class="point-title">午前試験の決定打・頻出ポイント</span>
+                  </div>
+                  <div class="exam-point-content" id="back-exam-points">
+                    HTTP/HTTPSトラフィックのペイロードを検査し、Webレイヤ（レイヤ7）の攻撃を遮断する。従来のパケットフィルタリングFWとの違いが頻出。
+                  </div>
+                </div>
+
+                <!-- 重要キーワードタグ -->
+                <div class="keywords-list" id="back-keywords">
+                  <span class="keyword-tag">SQLインジェクション</span>
+                  <span class="keyword-tag">XSS</span>
+                  <span class="keyword-tag">レイヤ7</span>
+                </div>
+              </div>
+
+              <div class="card-footer-hint">
+                <span class="desktop-hint">もう一度タップで表面に戻る</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 判定アクションバー -->
+        <div class="action-bar">
+          <button id="btn-prev" class="action-btn nav-btn" title="前のカード [← / P]">
+            <span>◀ 前へ</span>
+          </button>
+
+          <button id="btn-flip" class="action-btn flip-btn" title="裏返す [Space / Enter]">
+            <span class="flip-icon">🔄</span>
+            <span>めくる <kbd>Space</kbd></span>
+          </button>
+
+          <button id="btn-review" class="action-btn review-btn" title="要復習・苦手 [1]">
+            <span class="btn-icon">❌</span>
+            <span class="btn-text">要復習 <kbd>1</kbd></span>
+          </button>
+
+          <button id="btn-master" class="action-btn master-btn" title="覚えた・習得 [2]">
+            <span class="btn-icon">✅</span>
+            <span class="btn-text">覚えた <kbd>2</kbd></span>
+          </button>
+
+          <button id="btn-next" class="action-btn nav-btn" title="次のカード [→ / N]">
+            <span>次へ ▶</span>
+          </button>
+        </div>
+
+        <!-- キーボード操作ガイド（PC用） -->
+        <div class="shortcut-cheatsheet">
+          <span><kbd>Space</kbd> めくる</span>
+          <span><kbd>1</kbd> 要復習</span>
+          <span><kbd>2</kbd> 覚えた</span>
+          <span><kbd>←</kbd> 前へ</span>
+          <span><kbd>→</kbd> 次へ</span>
+          <span><kbd>B</kbd> ⭐</span>
+          <span><kbd>R</kbd> 反転</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==============================================
+         2. 4択スピードクイズ画面
+         ============================================== -->
+    <section id="view-quiz" class="view-section">
+      <div class="quiz-wrapper">
+        <div class="quiz-header-card">
+          <div class="quiz-meta-info">
+            <span class="badge" id="quiz-category-badge">テクノロジ系</span>
+            <span class="quiz-streak" id="quiz-streak">🔥 連続正解: 0問</span>
+          </div>
+          <div class="quiz-progress-text" id="quiz-progress-text">第 1 / 10 問</div>
+        </div>
+
+        <!-- クイズ問題文 -->
+        <div class="quiz-question-box">
+          <div class="quiz-prompt">Q. 以下の説明に当てはまる用語を選んでください</div>
+          <div class="quiz-question-text" id="quiz-question-text">
+            問題文がここに表示されます...
+          </div>
+        </div>
+
+        <!-- 4つの選択肢 -->
+        <div class="quiz-choices-grid" id="quiz-choices">
+          <!-- JSで動的生成 -->
+        </div>
+
+        <!-- 回答後フィードバック・解説エリア -->
+        <div class="quiz-feedback-box hidden" id="quiz-feedback-box">
+          <div class="feedback-result" id="quiz-feedback-result">
+            <span class="result-icon">⭕</span>
+            <span class="result-text">正解！</span>
+          </div>
+          <div class="feedback-answer-detail">
+            <span class="feedback-term" id="quiz-feedback-term">WAF</span>
+            <span class="feedback-spelling" id="quiz-feedback-spelling">(Web Application Firewall)</span>
+          </div>
+          <div class="feedback-explanation" id="quiz-feedback-explanation">
+            解説文...
+          </div>
+          <button id="btn-quiz-next" class="action-btn master-btn quiz-next-btn">
+            次の問題へ進む (Space / Enter) ➔
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================================
+         3. 単語帳一覧画面
+         ============================================== -->
+    <section id="view-list" class="view-section">
+      <div class="list-wrapper">
+        <div class="list-search-bar">
+          <input type="text" id="list-search-input" placeholder="🔍 単語名・略語・キーワードで検索..." class="search-input">
+          <div class="list-summary" id="list-summary">表示中: 0 件</div>
+        </div>
+
+        <div class="table-container">
+          <table class="terms-table">
+            <thead>
+              <tr>
+                <th width="40">⭐</th>
+                <th width="100">状態</th>
+                <th width="140">分野</th>
+                <th width="180">用語名</th>
+                <th width="200">英語名称</th>
+                <th>出題ポイント・説明</th>
+              </tr>
+            </thead>
+            <tbody id="terms-table-body">
+              <!-- JSで動的生成 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 統計モーダル -->
+  <div class="modal-overlay hidden" id="modal-stats">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📊 学習進捗・統計ダッシュボード</h3>
+        <button class="modal-close-btn" data-close="modal-stats">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-num text-cyan" id="stat-total-cards">0</div>
+            <div class="stat-label">総収録カード数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num text-green" id="stat-mastered-cards">0</div>
+            <div class="stat-label">習得済み (OK)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num text-amber" id="stat-review-cards">0</div>
+            <div class="stat-label">要復習 (苦手)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num text-purple" id="stat-mastery-rate">0%</div>
+            <div class="stat-label">習得率</div>
+          </div>
+        </div>
+
+        <div class="stats-section-title">分野別 習得状況</div>
+        <div class="category-breakdown" id="category-breakdown">
+          <!-- JSで動的挿入 -->
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-reset-stats" class="danger-btn">学習履歴をリセット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定 & データ管理モーダル -->
+  <div class="modal-overlay hidden" id="modal-settings">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙️ 設定 & データ管理</h3>
+        <button class="modal-close-btn" data-close="modal-settings">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">効果音</div>
+            <div class="setting-desc">正解・めくりの軽快なクリック音を鳴らす</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="setting-sound" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-title">自動めくり (4択正解時)</div>
+            <div class="setting-desc">クイズで正解時に1.2秒後に自動で次へ進む</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="setting-auto-advance">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="settings-section-title">自作カードのインポート / エクスポート</div>
+        <p class="setting-desc">学習進捗のバックアップや、独自の単語データの追加・復元が可能です。</p>
+        
+        <div class="data-actions-row">
+          <button id="btn-export-data" class="outline-btn">進捗データをエクスポート (JSON)</button>
+          <button id="btn-import-trigger" class="outline-btn">データをインポート</button>
+          <input type="file" id="file-import-input" accept=".json" class="hidden">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- アプリスクリプト -->
+  <script src="data/default_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
