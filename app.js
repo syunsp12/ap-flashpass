@@ -313,14 +313,14 @@
     document.getElementById('back-category').textContent = frontCat;
     const backStatus = document.getElementById('back-status');
     if (isMastered) {
-      backStatus.textContent = '✅ 習得済み';
-      backStatus.className = 'badge status-badge mastered';
+      backStatus.textContent = '習得済み';
+      backStatus.className = 'badge mastered';
     } else if (isReview) {
-      backStatus.textContent = '⚠️ 要復習';
-      backStatus.className = 'badge status-badge';
+      backStatus.textContent = '要復習';
+      backStatus.className = 'badge review';
     } else {
-      backStatus.textContent = '⚪ 未着手';
-      backStatus.className = 'badge status-badge';
+      backStatus.textContent = '未着手';
+      backStatus.className = 'badge badge-outline';
     }
 
     const backBm = document.getElementById('back-bookmark');
@@ -428,7 +428,7 @@
     state.quiz.answered = false;
 
     document.getElementById('quiz-category-badge').textContent = `${card.category || ''} / ${card.subCategory || ''}`;
-    document.getElementById('quiz-streak').textContent = `🔥 連続正解: ${state.quiz.streak}問`;
+    document.getElementById('quiz-streak').textContent = `連続正解: ${state.quiz.streak}問`;
     document.getElementById('quiz-progress-text').textContent = `正解数: ${state.quiz.score} / ${state.quiz.total}`;
     document.getElementById('quiz-question-text').textContent = card.question;
 
@@ -507,8 +507,8 @@
       playSound('correct');
       state.quiz.streak++;
       state.quiz.score++;
-      resultEl.className = 'feedback-result correct';
-      resultEl.innerHTML = '<span class="result-icon">⭕</span><span class="result-text">正解！</span>';
+      resultEl.className = 'quiz-result-header ' + (isCorrect ? 'correct' : 'wrong');
+      resultEl.innerHTML = '<span class="result-label">' + (isCorrect ? '正解' : '不正解') + '</span>';
       
       // Auto register to mastered if streak high or marked
       state.userData.mastered.add(state.quiz.currentCard.id);
@@ -522,8 +522,8 @@
     } else {
       playSound('wrong');
       state.quiz.streak = 0;
-      resultEl.className = 'feedback-result wrong';
-      resultEl.innerHTML = '<span class="result-icon">❌</span><span class="result-text">不正解</span>';
+      resultEl.className = 'quiz-result-header ' + (isCorrect ? 'correct' : 'wrong');
+      resultEl.innerHTML = '<span class="result-label">' + (isCorrect ? '正解' : '不正解') + '</span>';
 
       // Register to review set
       state.userData.review.add(state.quiz.currentCard.id);
@@ -531,7 +531,7 @@
       saveUserData();
     }
 
-    document.getElementById('quiz-streak').textContent = `🔥 連続正解: ${state.quiz.streak}問`;
+    document.getElementById('quiz-streak').textContent = `連続正解: ${state.quiz.streak}問`;
     document.getElementById('quiz-progress-text').textContent = `正解数: ${state.quiz.score} / ${state.quiz.total}`;
   }
 
@@ -564,20 +564,20 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
-          <button class="bookmark-btn ${isBookmarked ? 'active' : ''}" data-bm-id="${card.id}">⭐</button>
+          <button class="bookmark-icon ${isBookmarked ? 'active' : ''}" data-bm-id="${card.id}" aria-label="ブックマーク">★</button>
         </td>
         <td>
-          <span class="badge ${isMastered ? 'category-badge' : isReview ? 'difficulty-badge' : 'status-badge'}">
+          <span class="badge ${isMastered ? 'mastered' : isReview ? 'review' : 'badge-outline'}">
             ${isMastered ? '習得' : isReview ? '復習' : '未着手'}
           </span>
         </td>
-        <td><span style="font-size:0.75rem; color:#94a3b8;">${card.subCategory || card.category}</span></td>
+        <td><span style="font-size:0.75rem; color:var(--text-low);">${card.subCategory || card.category}</span></td>
         <td class="td-term">${card.term}</td>
         <td class="td-spelling">${card.fullSpelling || '-'}</td>
         <td class="td-point">${card.examPoints || card.question}</td>
       `;
 
-      tr.querySelector('.bookmark-btn').addEventListener('click', (e) => {
+      tr.querySelector('.bookmark-icon').addEventListener('click', (e) => {
         e.stopPropagation();
         toggleBookmark(card.id);
       });
@@ -642,11 +642,13 @@
   // =========================================================================
   function switchMode(newMode) {
     state.currentMode = newMode;
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.mode === newMode);
+    document.querySelectorAll('.segment-btn, .tab-btn').forEach(btn => {
+      const isActive = btn.dataset.mode === newMode;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
 
-    document.querySelectorAll('.view-section').forEach(sec => {
+    document.querySelectorAll('.view-panel, .view-section').forEach(sec => {
       sec.classList.remove('active');
     });
 
@@ -667,7 +669,7 @@
   // =========================================================================
   function setupEventListeners() {
     // Mode navigation tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.segment-btn, .tab-btn').forEach(btn => {
       btn.addEventListener('click', () => switchMode(btn.dataset.mode));
     });
 
@@ -698,8 +700,7 @@
     document.getElementById('btn-shuffle').addEventListener('click', () => {
       state.isShuffled = !state.isShuffled;
       const btn = document.getElementById('btn-shuffle');
-      btn.style.color = state.isShuffled ? 'var(--accent-cyan)' : '';
-      btn.style.borderColor = state.isShuffled ? 'var(--accent-cyan)' : '';
+      btn.classList.toggle('active', state.isShuffled);
       applyFilter();
       playSound('click');
     });
@@ -714,7 +715,7 @@
 
     // Flashcard Scene Click
     document.getElementById('card-scene').addEventListener('click', (e) => {
-      if (e.target.closest('.bookmark-btn')) return;
+      if (e.target.closest('.bookmark-btn, .bookmark-icon')) return;
       toggleFlipCard();
     });
 
@@ -750,14 +751,14 @@
       document.getElementById('modal-settings').classList.remove('hidden');
     });
 
-    document.querySelectorAll('.modal-close-btn').forEach(btn => {
+    document.querySelectorAll('.modal-close-btn, .dialog-close').forEach(btn => {
       btn.addEventListener('click', () => {
         document.getElementById(btn.dataset.close).classList.add('hidden');
       });
     });
 
     // Close modal on background click
-    document.querySelectorAll('.modal-overlay').forEach(modal => {
+    document.querySelectorAll('.modal-overlay, .dialog-overlay').forEach(modal => {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.add('hidden');
       });

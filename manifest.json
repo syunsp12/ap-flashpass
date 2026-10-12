@@ -1,0 +1,18 @@
+{
+  "name": "AP FlashPass - 応用情報 午前一問一答",
+  "short_name": "AP FlashPass",
+  "description": "応用情報技術者試験（AP）午前対策 特化型フラッシュカード＆4択クイズ学習ツール",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
