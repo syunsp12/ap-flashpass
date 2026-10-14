@@ -425,10 +425,11 @@ kbd {
 
 .flashcard-scene {
   width: 100%;
-  height: 380px;
+  height: 440px; /* 380pxから拡大（裏面コンテンツが収まりやすい高さに調整） */
   perspective: 1000px;
   cursor: pointer;
 }
+
 
 .flashcard {
   width: 100%;
@@ -501,11 +502,22 @@ kbd {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* center から変更（上部の見切れを防止） */
   gap: 12px;
   padding: 12px 0;
   overflow-y: auto;
+  min-height: 0; /* Flexboxの子要素が親を突き破るのを防ぐ必須指定 */
 }
+
+/* 表面・裏面ともに、文章が短いときは上下中央に配置し、長いときは上から順に表示してスクロール可能にする */
+.card-center > :first-child {
+  margin-top: auto;
+}
+
+.card-center > :last-child {
+  margin-bottom: auto;
+}
+
 
 .card-instruction {
   font-size: 0.78rem;
